@@ -60,4 +60,4 @@ def tavily_search(query: str, max_results: int = 3) -> str:
 # 使用示例
 if __name__ == "__main__":
     # 测试搜索
-    print(tavily_search("温州的天气怎么样？"))
+    print(tavily_search.invoke("温州的天气怎么样？"))

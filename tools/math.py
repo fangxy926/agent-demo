@@ -11,4 +11,4 @@ def math_calculator(input: str) -> str:
 
 
 if __name__ == '__main__':
-    print(math_calculator("2+2"))
+    print(math_calculator.invoke("2+2"))
