@@ -3,7 +3,7 @@ from langchain.agents import create_react_agent, AgentExecutor
 import os
 from langchain_core.callbacks import StreamingStdOutCallbackHandler
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain_ollama import OllamaLLM
+from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 from tools.math import math_calculator
 from tools.time import get_current_time
@@ -23,7 +23,7 @@ llm = ChatOpenAI(temperature=0.6,
                  callbacks=[StreamingStdOutCallbackHandler()])
 
 # # 调用Ollama的模型
-# llm = OllamaLLM(
+# llm = ChatOllama(
 #     base_url=os.getenv('OLLAMA_BASE_URL'),
 #     temperature=0.6,
 #     model="qwen2.5:1.5b",
