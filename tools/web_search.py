@@ -1,9 +1,11 @@
 from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.utilities import SerpAPIWrapper
+
 from langchain.tools import tool
 import os
 from dotenv import load_dotenv, find_dotenv
 
-_ = load_dotenv(find_dotenv())  # 读取本地 .env 文件
+_ = load_dotenv(find_dotenv())
 
 
 @tool
@@ -44,20 +46,35 @@ def tavily_search(query: str, max_results: int = 3) -> str:
             # todo 提取摘要
             url = result.get("url", "#")
 
-            # 构建条目
-            entry = [
-                f"【结果{idx}】{content}...",
-                f"链接：{url}" if url != "#" else "链接无效"
-            ]
-            formatted_results.append("\n".join(entry))
+            # 构建条目，封装成json
+            entry = {
+                "index": idx,
+                "content": content,
+                "url": url
+            }
+            formatted_results.append(entry)
 
-        return "\n---\n".join(formatted_results) if formatted_results else "未找到相关结果"
+        return formatted_results
 
     except Exception as e:
         return f"搜索执行失败：{str(e)}"
 
 
+@tool
+def serpapi_search(query: str) -> str:
+    """使用 SerpAPI 执行网络搜索。"""
+    params = {
+        "engine": "google",
+        "gl": "cn",
+        "hl": "zh-cn",
+    }
+    search = SerpAPIWrapper(params=params)
+    return search.run(query)
+
+
 # 使用示例
 if __name__ == "__main__":
     # 测试搜索
-    print(tavily_search.invoke("温州的天气怎么样？"))
+
+    print(tavily_search.invoke("温州今天天气怎么样？"))
+    # print(serpapi_search.invoke("温州今天天气怎么样？"))
