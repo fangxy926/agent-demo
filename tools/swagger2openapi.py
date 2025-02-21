@@ -3,6 +3,13 @@ import json
 
 
 def convert_swagger_to_openapi(swagger_url: str, path_key: str = None, max_paths: int = 100):
+    """
+    将Swagger 2文档转换为OpenAPI 3文档。
+    :param swagger_url: swagger2的文档链接
+    :param path_key: 接口路径关键字（模糊匹配）
+    :param max_paths: 最大接口输出量
+    """
+
     # 读取Swagger 2文档
     response = requests.get(swagger_url)
     if response.status_code != 200:
@@ -37,6 +44,8 @@ def convert_swagger_to_openapi(swagger_url: str, path_key: str = None, max_paths
     path_list = list(swagger_doc.get("paths", {}).items())[:max_paths]
     if path_key:
         path_list = [path_item for path_item in path_list if path_key in path_item[0]]
+
+    ref_name_cache = []
     # 转换Paths
     for path, path_item in path_list:
         openapi_doc["paths"][path] = {}
@@ -63,6 +72,7 @@ def convert_swagger_to_openapi(swagger_url: str, path_key: str = None, max_paths
                     # 处理引用类型的参数
                     ref = param['schema']['$ref']
                     ref_name = ref.split("/")[-1]  # 提取引用的类型名称
+                    ref_name_cache.append(ref_name)  # 换成引用类型
                     openapi_param["$ref"] = f"#/components/schemas/{ref_name}"
                 else:
                     # 处理普通类型参数
@@ -88,12 +98,13 @@ def convert_swagger_to_openapi(swagger_url: str, path_key: str = None, max_paths
     # 转换Schemas（模型）
     if "definitions" in swagger_doc:
         for schema_name, schema in swagger_doc["definitions"].items():
-            openapi_doc["components"]["schemas"][schema_name] = schema
+            if schema_name in ref_name_cache:
+                openapi_doc["components"]["schemas"][schema_name] = schema
 
-    # 转换Security Schemes
-    if "securityDefinitions" in swagger_doc:
-        for security_name, security in swagger_doc["securityDefinitions"].items():
-            openapi_doc["components"]["securitySchemes"][security_name] = security
+    # # 转换Security Schemes
+    # if "securityDefinitions" in swagger_doc:
+    #     for security_name, security in swagger_doc["securityDefinitions"].items():
+    #         openapi_doc["components"]["securitySchemes"][security_name] = security
 
     # 输出OpenAPI 3文档
     return json.dumps(openapi_doc, indent=2, ensure_ascii=False)
